@@ -1,0 +1,93 @@
+:root {
+  --first-color: #1a73e8;
+  --input-color: #80868b;
+  --border-color: #dadce0;
+
+  --body-font: "Roboto", sans-seif;
+  --normal-font-size: 1rem;
+  --small-font-sieze: 0.75;
+}
+
+*,
+::befor::after {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--body-font);
+  font-size: var(--normal-font-size);
+}
+.l-form {
+  display: flex;
+
+  margin: 10% 40%;
+  flex-direction: column;
+
+  padding: 4rem 2rem;
+}
+.form_title {
+  font-weight: 400;
+  margin-bottom: 3rem;
+}
+.form_div {
+  position: relative;
+  height: 48px;
+  margin-bottom: 1.5rem;
+}
+
+.form_input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  font-size: var(--normal-font-size);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  outline: none;
+  padding: 1rem;
+  background: none;
+  z-index: 1;
+}
+
+.form_label {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  padding: 0 0.25rem;
+  background-color: #fff;
+  color: var(--input-color);
+  font-size: var(--normal-font-size);
+  transition: 0.3s;
+}
+
+.form_button {
+  padding: 0.75rem 2rem;
+  outline: none;
+  border: none;
+  background-color: #ffc34d;
+  color: #fff;
+  font-size: var(--normal-font-size);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.form_button:hover {
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.15);
+}
+.form_input + .form_label {
+  top: -0.5rem;
+  left: 0.8rem;
+  color: aqua;
+  font-size: var(--small-font-sieze);
+  font-weight: 500;
+  z-index: 10;
+}
+.form_input:not(:placeholder-shown).form_input:not(:focus) + .form_label {
+  top: -0.5rem;
+  left: 0.8rem;
+  font-size: var(--small-font-sieze);
+  font-weight: 500;
+  z-index: 10;
+}
