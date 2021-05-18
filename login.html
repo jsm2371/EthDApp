@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css_file/login.css">
+    <title>Login page</title>
+    
+</head>
+<body>
+    <div class="logo">
+        <p>BLOCK PANDA</p>
+    </div>
+    <div class="center">
+        <h1>로그인</h1>
+        <form method="post" id="loginForm">
+            <div class="text_field">
+                <input type="text" id="email">
+                <span></span>
+                <label for=""></label>
+            </div>
+            <div class="text_field">
+                <input type="password" id="password">
+                <label for=""></label>
+            </div>
+            <input  type="submit" value="Login">
+            <div class="signup_link">
+                구글 회원가입 : <a href="signup.html">회원가입</a>
+            </div>
+        </form>
+    </div>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js"></script>
+<script>
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    var firebaseConfig = {
+        apiKey: "AIzaSyCFu9BxgJTkWMPRcRlhIfzrd-pM-ex0b2g",
+        authDomain: "fir-auth-115ec.firebaseapp.com",
+        projectId: "fir-auth-115ec",
+        storageBucket: "fir-auth-115ec.appspot.com",
+        messagingSenderId: "2352538330",
+        appId: "1:2352538330:web:c5d39e62c7493db4f77be3",
+        measurementId: "G-KTCKRSMN52"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+</script>
+
+    
+</body>
+<script src="./javascript_file/login.js"></script>
+</html>
