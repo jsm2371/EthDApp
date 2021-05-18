@@ -1,10 +1,24 @@
-# EthDApp
+# again
 
-학생부 장부관리용 이더리움 디앱 개발
+## Project setup
+```
+npm install
+```
 
-착안점)
-목적)
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
 
-기능)
+### Compiles and minifies for production
+```
+npm run build
+```
 
-기대효과)
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
