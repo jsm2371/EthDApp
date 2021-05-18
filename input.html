@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.0/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>Input</title>
+
+</head>
+<!-- ... -->
+<style>
+html, body {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  background-color: #E6E6E6;
+}
+#app {
+  height: 100%;
+  margin: 1.5rem 0;
+  padding: 0;
+}
+.title {
+  text-align: center;
+}
+.message:not(:last-child) {
+  margin-bottom: 0;
+}
+.message-body {
+  font-weight: 600;
+}
+.button {
+  float: right;
+}
+.income {
+  color: green;
+}
+.outcome {
+  color: red;
+}
+</style>
+<body>
+  <div class="columns is-mobile" id="app">
+    <div class="column is-10 is-offset-1">
+      
+      <!--title-->
+      <p class="title is-2 is-spaced">회계 장부 입력</p>
+      
+      <!--input form-->
+      <div class="field has-addons">
+        <p class="control">
+          <input class="input" type="number" name="Amount" placeholder="금액">
+        </p>
+        <p class="control is-expanded">
+          <input class="input" type="text" name="description" placeholder="비고">
+        </p>
+        <p class="control">
+          <button class="button is-save" @click="insertRecord">저장</button>
+        </p>
+      </div>
+      
+      <!--dashboard-->
+      <div class="columns">
+        <div class="column">
+          <article class="message is-success">
+            <div class="message-header">
+              <p>수입</p>
+            </div>
+            <div class="message-body">
+            </div>
+          </article>
+        </div>
+        <div class="column">
+          <article class="message is-delete">
+            <div class="message-header">
+              <p>지출</p>
+            </div>
+            <div class="message-body">
+            </div>
+          </article>
+        </div>
+        <div class="column">
+          <article class="message is-info">
+            <div class="message-header">
+              <p>총액</p>
+            </div>
+            <div class="message-body">
+            </div>
+          </article>
+        </div>
+      </div>
+      
+      <!--contents-->
+      <table class="table">
+        <thead>
+          <tr>
+            <th>기록시간</th>
+            <th>금액</th>
+            <th>비고</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+           <template v-for="(record, index) in allRecords">
+            <record-row v-if="!record.isEditMode"
+              @toggle-edit="toggleEditModeOf(index)"
+              @delete-record="deleteRecord(index)"
+              :record="record"></record-row>
+            <update-row v-else
+              @toggle-edit="toggleEditModeOf(index)"
+              :record="record" :form="updateForm"
+              @form-update="form => { updateForm = form }"
+              @update-record="updateRecord"></update-row>
+          </template>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+              <button class="button is-delete">삭제</button>
+              <button class="button is-modify">수정</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+class Form {
+      constructor(data) 
+      {
+        this.originalData = data;
+        
+        for (let field in data)
+        {
+          this[field] = data[field];
+        }
+
+        delete this.originalData.type;
+      }
+
+      data() 
+      {
+        let data = {};
+
+        if (this.type !== 'income') {
+          this.amount = this.amount * -1;
+        }
+
+        for (let field in this.originalData) {
+          data[field] = this[field];
+        }
+
+        return data;
+      }
+
+      create() 
+      {
+        let data = { record: this.data() };
+
+        axios(
+        {
+          method: 'post',
+          url: 'http://localhost:2300/api/records',
+          data: data,
+        })
+        
+        .then(response => 
+        {
+          app.records.push(response.data);
+        })
+        
+        .catch(error => 
+        {
+          console.log(error.response.data);
+        });
+      }
+
+      update() {
+        let record_id = this.id;
+        let data = { record: this.data() };
+
+        axios(
+        {
+          method: 'patch',
+          url: `http://localhost:2300/api/records/${record_id}`,
+          data: data,
+        })
+        .then(response => 
+        {
+          let index = app.records.findIndex(record => 
+          {
+            return record.id === response.data.id;
+          }
+          );
+
+          app.records.splice(index, 1, response.data);
+        })
+        .catch(error => 
+        {
+          console.log(error.response.data);
+        })
+      }
+    }
+
+//컴포넌트 추출
+const RecordRow = {
+      props: ['record'],
+      
+      // 사용자지정 이벤트 toggleEdit로 하위 컴포넌트 이벤트 발생을 상위 컴포넌트로
+      // 알린 후, 상위 컴포넌트에서 연산 수행
+      template: `
+        <tr>
+          <td>{{ record.created_at }}</td>
+          <td :class="{
+            income: record.amount > 0,
+            outcome: record.amount < 0
+          }">
+            {{ record.amount | setSign }}
+          </td>
+          <td>{{ record.description }}</td>
+          <td>
+            <button class="button is-delete" @click="deleteRecord">Delete</button>
+            <button class="button is-modify" @click="toggleEdit">Edit</button>
+          </td>
+        </tr>
+      `,
+
+      filters: {
+        setSign(value) {
+          return value > 0 ? "+" + value : value;
+        }
+      },
+
+      methods: {
+        toggleEdit() {
+          this.$emit('toggle-edit');
+        },
+
+        deleteRecord() {
+          this.$emit('delete-record');
+        }
+      }
+    };
+
+//allRecords 배열에 있는 각각의 record를 사용하여 탬플릿 랜더링
+const UpdateRow = {
+      props: ['record', 'form'],
+
+      template: `
+        <tr>
+          <input type="hidden" :record_id="record.id" />
+          <td>{{ record.created_at }}</td>
+          <td>
+            <input class="input" type="number" :value="record.amount"
+                   @input="updateFormValue('amount', $event.target.value)" />
+          </td>
+          <td>
+            <input class="input" type="text" :value="record.description"
+                   @input="updateFormValue('description', $event.target.value)" />
+          </td>
+          <td>
+            <button class="button is-delete" @click="toggleEdit">Cancel</button>
+            <button class="button is-modify" @click="updateRecord">Update</button>
+          </td>
+        </tr>
+      `,
+
+      computed: {
+        editForm() {
+          let form = this.form;
+
+          for (let field in this.record) {
+            form[field] = this.record[field];
+          }
+
+          return form;
+        }
+      },
+
+      methods: {
+        toggleEdit() {
+          this.$emit('toggle-edit');
+        },
+
+        updateFormValue(field, value) {
+          this.editForm[field] = value;
+
+          this.$emit('form-update', this.editForm);
+        },
+
+        updateRecord() {
+          this.$emit('update-record');
+        }
+      }
+    }
+
+  // 대시보드에 쓰일 자료 자바스크립트로 계산 표시 작업
+  const app = new Vue({
+      el: '#app',
+
+      data: {
+        records: [],
+        insertForm: new Form({
+          type: 'income',
+          amount: '',
+          description: ''
+        }),
+        updateForm: new Form({
+          type: 'income',
+          id: '',
+          amount: '',
+          description: ''
+        })
+      },
+
+      computed: {
+        // 전체 자료 표로 표시하기
+        allRecords() {
+          return this.records.sort((prevRecord, nextRecord) => {
+            return nextRecord.id - prevRecord.id;
+          }).map(record => {
+            let createdAt = record.created_at.replace(/\sUTC$/, '');
+            let localCreatedAt = moment.utc(createdAt).local().format('YYYY-MM-DD HH:mm:ss');
+
+            return {
+              id: record.id,
+              amount: record.amount,
+              description: record.description,
+              created_at: localCreatedAt,
+              isEditMode: record.isEditMode
+            }
+          });
+        },
+
+        sumOfIncome() {
+          return "+" + this.records.filter(record => {
+            return record.amount > 0;
+          }).reduce((sum, income) => {
+            return sum + income.amount;
+          }, 0);
+        },
+
+        sumOfOutcome() {
+          return this.records.filter(record => {
+            return record.amount < 0;
+          }).reduce((sum, outcome) => {
+            return sum + outcome.amount;
+          }, 0);
+        },
+
+        totalAmount() {
+          return this.records.reduce((sum, record) => {
+            return sum + record.amount;
+          }, 0);
+        }
+      },
+
+ methods: {
+        insertRecord() 
+        {
+          this.insertForm.create();
+        },
+
+        updateRecord() 
+        {
+          this.updateForm.update();
+        },
+
+        deleteRecord(index) 
+        {
+          let record_id = this.records[index].id;
+          
+          axios({
+            method: 'delete',
+            url: `http://localhost:2300/api/records/${record_id}`,
+          })
+          .then(response => {
+            this.records.splice(index, 1);
+          })
+          .catch(error => {
+            console.log(error.response.data);
+          });
+        },
+
+        toggleEditModeOf(index) 
+        {
+          let target_record = this.records[index];
+          this.records.splice(index, 1,
+            Object.assign(target_record, {
+              isEditMode: !target_record.isEditMode
+            }));
+        }
+      },
+
+      components: {
+        'record-row': RecordRow,
+        'update-row': UpdateRow
+      }
+    });
+  
+    </script>
+  </body>
+</html>
